@@ -1,0 +1,57 @@
+#!/bin/bash
+# Collect an Ollama status record for the (cloned) omarchy.agents panel.
+#
+# Ollama has no public rate-limit/usage API like Claude or Codex, so this
+# only reports whether the local server is running and which models
+# (local + ollama.com cloud) are installed. Written to
+# ~/.local/state/omarchy/agents/usage/ollama.json by the plugin's own
+# refresh cycle (see runOllamaUpdate() in Main.qml).
+set -euo pipefail
+
+running=false
+if pgrep -u "$USER" -f '(^|/)ollama serve$' >/dev/null 2>&1; then
+  running=true
+elif systemctl --user is-active --quiet ollama.service 2>/dev/null; then
+  running=true
+fi
+
+models_json="[]"
+model_count=0
+if $running && command -v ollama >/dev/null 2>&1; then
+  models_json=$(ollama list 2>/dev/null | tail -n +2 | awk 'NF{print $1}' | jq -R . | jq -s .)
+  model_count=$(jq 'length' <<<"$models_json")
+fi
+
+if $running; then
+  status_text="Running · ${model_count} model$([[ $model_count == 1 ]] && echo "" || echo "s")"
+else
+  status_text="Stopped"
+fi
+
+managed=false
+systemctl --user list-unit-files ollama.service >/dev/null 2>&1 && managed=true
+
+jq -n \
+  --arg id "ollama" \
+  --arg name "Ollama" \
+  --arg updatedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --argjson running "$running" \
+  --argjson managed "$managed" \
+  --arg statusText "$status_text" \
+  --argjson models "$models_json" \
+  --argjson modelCount "$model_count" \
+  '{
+    schemaVersion: 1,
+    id: $id,
+    name: $name,
+    updatedAt: $updatedAt,
+    ready: true,
+    hasLocalStats: false,
+    hasPromptStats: false,
+    running: $running,
+    serviceManaged: $managed,
+    usageStatusText: $statusText,
+    models: $models,
+    modelCount: $modelCount,
+    forceVisible: true
+  }'
