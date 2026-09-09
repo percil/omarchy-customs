@@ -546,14 +546,21 @@ Panel {
           }
 
           // ---------- Status ----------
-          // Keyed on authHelpText, the field this box actually renders, not
-          // usageStatusText: Claude/Codex only ever set authHelpText
-          // alongside an error usageStatusText, so the two used to imply
-          // each other, but Ollama's usageStatusText is a plain "Running" /
-          // "Stopped" label with no authHelpText — checking the wrong field
-          // drew this alarm-styled box empty on every refresh.
+          // Claude/Codex's collectors default authHelpText to a static
+          // "run `claude auth login`"/"run `codex login`" string and never
+          // clear it back to "" on a successful probe — only usageStatusText
+          // goes back to "" on success — so authHelpText alone is non-empty
+          // almost all the time and is not a reliable "there's an error"
+          // signal by itself. usageStatusText alone isn't reliable either:
+          // Ollama's collector sets it unconditionally as a plain "Running"/
+          // "Stopped" label with no authHelpText. Requiring both non-empty
+          // is correct for every provider: Claude/Codex only set them
+          // together on a real error/waiting state, and Ollama never sets
+          // authHelpText at all.
           BorderSurface {
-            visible: !!root.provider && String(root.provider.authHelpText || "") !== ""
+            visible: !!root.provider
+              && String(root.provider.usageStatusText || "") !== ""
+              && String(root.provider.authHelpText || "") !== ""
             width: parent.width
             implicitHeight: statusText.implicitHeight + Style.spacing.xl * 2
             color: root.alpha(root.urgent, 0.10)

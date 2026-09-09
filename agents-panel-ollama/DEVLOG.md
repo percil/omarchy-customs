@@ -103,3 +103,47 @@ Verified by stopping Ollama, reloading the shell, and confirming the tab
 
 Verified with a screenshot: tab switcher at top, models + three buttons at
 bottom, no more empty red box.
+
+## 4. Follow-up: the red box came back, this time for Claude Code and Codex
+
+> The red panel for authentication is always there for both Claude Code and
+> Codex. While it is gone (good) for Ollama.
+
+Round 3's fix keyed the alarm box's visibility on `authHelpText` alone,
+reasoning that Claude/Codex only ever set it alongside an error
+`usageStatusText`. That premise was wrong, and reading the actual packaged
+collectors (`/usr/share/omarchy/bin/omarchy-agent-usage-claude` and
+`-codex`, read-only — reading is fine, editing them is not) confirms it:
+
+- Both collectors build their limits result starting from
+  `{"authHelpText": AUTH_HELP, ...}` (`AUTH_HELP` being the literal
+  `"Run \`claude auth login\`..."` / `"Run \`codex login\`..."` string) —
+  and **every success path returns without ever clearing it back to `""`**.
+  `authHelpText` is non-empty essentially all the time, success included.
+- `usageStatusText`, by contrast, genuinely does go back to `""` on success
+  and is only ever populated on a real error/waiting state (no token,
+  expired sign-in, probe failure, etc.) — it was the correct signal all
+  along.
+
+Confirmed directly against the live records
+(`~/.local/state/omarchy/agents/usage/{claude,codex}.json` while both
+agents were authenticated and reporting real usage): `usageStatusText` was
+`""` but `authHelpText` still held the static "run login" string —
+exactly the always-on-red-box symptom reported.
+
+Fix: require **both** fields non-empty to show the box, not `authHelpText`
+alone. This is still not Ollama-specific — Ollama's collector never sets
+`authHelpText` at all, so the combined check keeps it hidden for Ollama the
+same way plain `authHelpText` did, while now also correctly going back to
+hidden for Claude/Codex on success. Landed in `Panel.qml`'s status-box
+`visible` binding.
+
+Verified: reloaded the shell (`omarchy restart shell`), confirmed no QML
+warnings/errors in `journalctl --user`, and re-read the live usage JSON
+files to confirm the new condition evaluates to hidden for the
+currently-authenticated Claude/Codex records and for Ollama, and would
+evaluate to visible for the still-broken `fireworks.json` record (a real,
+unrelated auth error unaffected by this fix) — no interactive click-through
+screenshot this round, since no mouse-input-simulation tool (`ydotool`/
+`wlrctl`) is available in this environment to pop the floating panel open
+programmatically.

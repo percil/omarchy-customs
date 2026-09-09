@@ -110,14 +110,22 @@ Three targeted changes on top of the stock file:
 - After either button, a short settle timer (600ms) re-runs the collector so
   the panel reflects the new state without waiting for the next scheduled
   refresh.
-- Fixed a pre-existing-for-Ollama-only bug along the way: the panel's
-  "auth/error" banner (styled in the alarm/red color) was keyed on
-  `usageStatusText` being non-empty. That's a safe proxy for Claude/Codex,
-  which only ever set that field on an error. Ollama's record sets it
-  unconditionally as a normal status label ("Running"/"Stopped"), which lit
-  the banner empty on every refresh. Re-keyed the banner on `authHelpText`
-  (the field it actually renders) instead — correct for every provider, not
-  just Ollama.
+- Fixed the panel's "auth/error" banner (styled in the alarm/red color),
+  which needed two rounds to get right:
+  - Round 1: it was keyed on `usageStatusText` alone being non-empty, which
+    is a safe-looking but wrong proxy — Ollama's record sets that field
+    unconditionally as a normal status label ("Running"/"Stopped"), so it
+    drew the banner empty on every refresh.
+  - Round 2: re-keying on `authHelpText` alone (the field the banner
+    actually renders) fixed Ollama but broke Claude/Codex the other way —
+    both stock collectors default `authHelpText` to a static "run login"
+    string and never clear it back to `""` on success, so it's non-empty
+    almost all the time, success included, which lit the banner
+    permanently for Claude/Codex.
+  - Fix: the banner now requires **both** `usageStatusText` and
+    `authHelpText` non-empty. Claude/Codex only ever set both together on a
+    real error/waiting state; Ollama never sets `authHelpText` at all — so
+    this is correct for every provider without special-casing any of them.
 
 ### Icon: `plugin/olp.agents/assets/ollama.svg` / `ollama-light.svg`
 
@@ -151,3 +159,9 @@ light ones — same pattern as `codex.svg` / `codex-light.svg`.
 - Screenshotted the panel (via `omarchy capture screenshot fullscreen save`)
   at each stage to confirm the tab appears, stays visible while stopped, the
   buttons render and work, and the stray red banner is gone.
+- For the `usageStatusText && authHelpText` banner fix: read the packaged
+  Claude/Codex collector source to confirm the root cause, reloaded the
+  shell and checked `journalctl --user` for QML warnings/errors (none), and
+  cross-checked the new condition against the live
+  `~/.local/state/omarchy/agents/usage/*.json` records for every provider
+  (including `fireworks.json`, whose genuine auth error is unaffected).
