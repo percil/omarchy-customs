@@ -39,3 +39,4 @@ in this repo.
 | Project | What it does |
 |---|---|
 | [`agents-panel-ollama/`](agents-panel-ollama/README.md) | Archived Ollama tab customization, retired 2026-10-09. The live bar now uses the stock Agents widget; Ollama runs as an AMD/ROCm-enabled system service at boot. |
+| [`apple-music-widget/`](apple-music-widget/README.md) | Apple Music web app control: a note-icon widget right of the clock opens a popup with play/pause, prev/next, shuffle/repeat and a keep-playing in-app search, driven by a localhost CDP/MPRIS control service. |

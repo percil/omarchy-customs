@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "olp.applemusic",
+  "name": "Apple Music",
+  "version": "1.0.0",
+  "author": "olp",
+  "description": "Apple Music web app control: center-island bar widget + tray daemon",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Apple Music",
+    "description": "Search, shuffle, repeat, play/pause, next and previous for the Apple Music web app",
+    "category": "Media",
+    "allowMultiple": false
+  }
+}

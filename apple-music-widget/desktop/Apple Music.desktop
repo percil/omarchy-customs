@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Apple Music
+Comment=Apple Music
+Exec=/home/olp/.config/omarchy/applemusic/launch
+Terminal=false
+Type=Application
+Icon=apple-music
+StartupNotify=true

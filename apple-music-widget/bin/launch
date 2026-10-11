@@ -1,0 +1,7 @@
+#!/bin/bash
+# Apple Music web app launcher with local CDP debugging port
+# (controls the in-page shuffle/repeat/search buttons when the app is fronted by the tray daemon).
+exec chromium --ozone-platform=wayland --ozone-platform-hint=wayland \
+  --password-store=gnome-libsecret \
+  --app=https://music.apple.com/ \
+  --remote-debugging-port=9222 "$@"
