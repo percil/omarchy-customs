@@ -1,5 +1,27 @@
 # Ollama in the Omarchy Agents panel
 
+## Current status: retired 2026-10-09
+
+This customization is archived, not active. The live bar uses the stock
+`omarchy.agents` widget again. The `olp.agents` clone, its Ollama collector,
+and its cached usage records were removed. The shell configuration and clone
+were backed up by the restore operation.
+
+The user `ollama.service` was stopped and removed. Ollama now uses the packaged
+system unit, enabled at boot, with the installed `ollama-rocm` backend and
+`/etc/systemd/system/ollama.service.d/amd.conf` granting the `render` and `video`
+supplementary groups. Its model store is `/var/lib/ollama`. All existing model
+blobs and manifests in that store and `~/.ollama/models` were removed for a
+fresh download later.
+
+The stock panel reports Claude Code and Codex usage, including their OpenCode
+sessions. Hermes is supported by the stock agent launcher, but does not have
+a packaged usage collector/tab.
+
+The snapshot files and reapply instructions below describe the previous setup.
+
+## Archived customization
+
 Adds Ollama as a third tab in Omarchy's built-in **Agents** bar widget
 (`omarchy.agents` — the one that already shows Claude Code and Codex usage),
 plus Start/Stop control over a local Ollama server. Done entirely through

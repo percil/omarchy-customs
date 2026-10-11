@@ -38,4 +38,4 @@ in this repo.
 
 | Project | What it does |
 |---|---|
-| [`agents-panel-ollama/`](agents-panel-ollama/README.md) | Adds Ollama as a third tab (alongside Claude Code and Codex) in Omarchy's built-in Agents bar widget — status, installed models, and Start/Stop/Refresh controls for a local Ollama server. |
+| [`agents-panel-ollama/`](agents-panel-ollama/README.md) | Archived Ollama tab customization, retired 2026-10-09. The live bar now uses the stock Agents widget; Ollama runs as an AMD/ROCm-enabled system service at boot. |
